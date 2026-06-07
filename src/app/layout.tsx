@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   title: "Jungle Food POS - Sistem Point of Sale Kantin Sekolah",
   description: "Aplikasi POS (Point of Sale) untuk Stand Kantin Jungle Food",
   icons: {
-    icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
+    icon: "/public/logo.png",
   },
 };
 

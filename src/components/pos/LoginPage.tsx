@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { UtensilsCrossed, Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -21,11 +21,10 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      // Try to seed first (in case fresh db)
       try {
         await fetch('/api/seed', { method: 'POST' });
       } catch {
-        // Ignore seed errors
+        // ignore
       }
 
       const res = await fetch('/api/auth/login', {
@@ -58,8 +57,12 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-lime-50 dark:from-gray-950 dark:via-gray-900 dark:to-emerald-950 p-4">
       <Card className="w-full max-w-md shadow-xl border-emerald-200 dark:border-emerald-800">
         <CardHeader className="text-center space-y-3 pb-2">
-          <div className="mx-auto w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center">
-            <UtensilsCrossed className="w-8 h-8 text-white" />
+          <div className="mx-auto w-20 h-20 rounded-2xl overflow-hidden shadow-lg shadow-emerald-200 dark:shadow-emerald-900">
+            <img
+              src="/logo.png"
+              alt="Jungle Food Logo"
+              className="w-full h-full object-cover"
+            />
           </div>
           <CardTitle className="text-2xl font-bold text-emerald-800 dark:text-emerald-300">
             Stand Kantin &ldquo;Jungle Food&rdquo;
@@ -114,11 +117,6 @@ export default function LoginPage() {
                 'Masuk'
               )}
             </Button>
-            <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg text-xs text-blue-700 dark:text-blue-300 space-y-1">
-              <p className="font-semibold">Demo Akun:</p>
-              <p>Admin: <strong>admin</strong> / <strong>admin123</strong></p>
-              <p>Kasir: <strong>kasir</strong> / <strong>kasir123</strong></p>
-            </div>
           </form>
         </CardContent>
       </Card>
