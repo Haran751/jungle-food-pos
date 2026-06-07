@@ -9,7 +9,7 @@ export interface ITransactionDetail extends Document {
 
 const TransactionDetailSchema = new Schema<ITransactionDetail>(
   {
-    transactionId: { type: Schema.Types.ObjectId, ref: 'Transaction', required: true },
+    transactionId: { type: Schema.Types.ObjectId, ref: 'Transaction' },
     productId: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
     quantity: { type: Number, required: true },
     subtotal: { type: Number, required: true },

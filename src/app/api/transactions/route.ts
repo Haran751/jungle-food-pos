@@ -156,6 +156,12 @@ export async function POST(request: NextRequest) {
       details: detailDocs.map((d) => d._id),
     });
 
+    // Link transactionId back to detail docs
+    await TransactionDetail.updateMany(
+      { _id: { $in: detailDocs.map((d) => d._id) } },
+      { transactionId: transaction._id }
+    );
+
     // Populate details for response
     await transaction.populate({
       path: 'details',
