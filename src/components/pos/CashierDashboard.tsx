@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useStore } from '@/store/useStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, DollarSign, ShoppingBag, Clock } from 'lucide-react';
+import { Loader2, DollarSign, ShoppingBag, Clock, AlertCircle } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface CashierDashboardData {
@@ -20,23 +20,32 @@ interface CashierDashboardData {
 }
 
 export default function CashierDashboard() {
-  const { token, setPage } = useStore();
+  const token = useStore((s) => s.token);
+  const setPage = useStore((s) => s.setPage);
   const [data, setData] = useState<CashierDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    fetchDashboard();
-  }, []);
+    if (!token) return;
+    fetchDashboard(token);
+  }, [token]);
 
-  const fetchDashboard = async () => {
+  const fetchDashboard = async (authToken: string) => {
     try {
+      setLoading(true);
+      setError('');
       const res = await fetch('/api/reports/dashboard', {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${authToken}` },
       });
       const json = await res.json();
-      if (res.ok) setData(json);
+      if (res.ok) {
+        setData(json);
+      } else {
+        setError(json.error || json.detail || 'Gagal memuat data');
+      }
     } catch {
-      // ignore
+      setError('Gagal terhubung ke server');
     } finally {
       setLoading(false);
     }
@@ -48,6 +57,21 @@ export default function CashierDashboard() {
     return (
       <div className="flex items-center justify-center py-20">
         <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 gap-4">
+        <AlertCircle className="w-12 h-12 text-red-400" />
+        <p className="text-red-500 font-medium">{error}</p>
+        <button
+          onClick={() => fetchDashboard(token)}
+          className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm hover:bg-emerald-700"
+        >
+          Coba Lagi
+        </button>
       </div>
     );
   }
