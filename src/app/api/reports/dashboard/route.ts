@@ -70,12 +70,11 @@ export async function GET(request: NextRequest) {
       const dayName = new Intl.DateTimeFormat('id-ID', { weekday: 'short' }).format(date);
       const dateStr = `${date.getDate()}/${date.getMonth() + 1}`;
 
-      chartData.push({
-        name: dayName,
-        date: dateStr,
-        total: dayResult[0]?.total || 0,
-        count: dayCount,
-      });
+          const chartData: { 
+            name: string;
+            date: string;
+            total: number; 
+            count: number }[] = [];
     }
 
     // Top selling products

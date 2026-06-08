@@ -16,8 +16,10 @@ interface UserData {
 }
 
 export default function UserManagement() {
+  const token = useStore((s) => s.token);
   const [users, setUsers] = useState<UserData[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [fetchError, setFetchError] = useState('');
   const [search, setSearch] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -33,29 +35,34 @@ export default function UserManagement() {
     name: '',
   });
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (authToken: string) => {
     setLoading(true);
+    setFetchError('');
     try {
-      const currentToken = useStore.getState().token;
       const res = await fetch('/api/users', {
-        headers: { Authorization: `Bearer ${currentToken}` },
+        headers: { Authorization: `Bearer ${authToken}` },
       });
       const json = await res.json();
       if (res.ok) {
         setUsers(json.users || []);
       } else {
+        setFetchError(json.error || 'Gagal memuat data user');
         console.error('Fetch users failed:', json.error);
       }
     } catch (err) {
+      setFetchError('Terjadi kesalahan koneksi');
       console.error('Fetch users error:', err);
     } finally {
       setLoading(false);
     }
   };
 
+  // Fetch pas token udah ready, dan tiap kali navigate ke halaman ini
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    if (token) {
+      fetchUsers(token);
+    }
+  }, [token]);
 
   const openCreateDialog = () => {
     setForm({ id: '', username: '', password: '', role: 'KASIR', name: '' });
@@ -75,7 +82,12 @@ export default function UserManagement() {
     setSaving(true);
     setError('');
     try {
-      const currentToken = useStore.getState().token;
+      const authToken = useStore.getState().token;
+      if (!authToken) {
+        setError('Sesi sudah berakhir, silakan login ulang');
+        setSaving(false);
+        return;
+      }
       const body: Record<string, unknown> = {
         username: form.username,
         role: form.role,
@@ -93,7 +105,7 @@ export default function UserManagement() {
         method: editMode ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${currentToken}`,
+          Authorization: `Bearer ${authToken}`,
         },
         body: JSON.stringify(body),
       });
@@ -101,7 +113,7 @@ export default function UserManagement() {
       const json = await res.json();
       if (res.ok) {
         setDialogOpen(false);
-        fetchUsers();
+        fetchUsers(authToken);
       } else {
         setError(json.error || 'Gagal menyimpan user');
       }
@@ -114,15 +126,19 @@ export default function UserManagement() {
 
   const handleDelete = async (id: string) => {
     try {
-      const currentToken = useStore.getState().token;
+      const authToken = useStore.getState().token;
+      if (!authToken) {
+        alert('Sesi sudah berakhir, silakan login ulang');
+        return;
+      }
       const res = await fetch(`/api/users?id=${id}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${currentToken}` },
+        headers: { Authorization: `Bearer ${authToken}` },
       });
       const json = await res.json();
       if (res.ok) {
         setDeleteConfirm(null);
-        fetchUsers();
+        fetchUsers(authToken);
       } else {
         alert(json.error || 'Gagal menghapus user');
       }
@@ -200,16 +216,30 @@ export default function UserManagement() {
         />
       </div>
 
+      {/* Fetch Error */}
+      {fetchError && (
+        <div className="p-3 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 rounded-lg flex items-center justify-between">
+          <p className="text-sm text-red-600 dark:text-red-400">{fetchError}</p>
+          <Button variant="outline" size="sm" className="ml-3 text-red-600 border-red-300 hover:bg-red-100" onClick={() => token && fetchUsers(token)}>
+            Coba Lagi
+          </Button>
+        </div>
+      )}
+
       <Card>
         <CardContent className="p-0">
-          {loading ? (
+          {!token ? (
+            <div className="text-center py-16 text-muted-foreground">
+              <p>Menunggu autentikasi...</p>
+            </div>
+          ) : loading ? (
             <div className="flex items-center justify-center py-16">
               <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
             </div>
           ) : filteredUsers.length === 0 ? (
             <div className="text-center py-16 text-muted-foreground">
               <Users className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p>Belum ada user</p>
+              <p>{fetchError ? 'Tidak dapat memuat data' : 'Belum ada user'}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
