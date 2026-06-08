@@ -7,7 +7,8 @@ export type PageName =
   | 'products'
   | 'transaction'
   | 'stock-report'
-  | 'sales-report';
+  | 'sales-report'
+  | 'user-management';
 
 interface User {
   id: string;

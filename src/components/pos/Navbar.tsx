@@ -13,6 +13,7 @@ import {
   Package,
   FileBarChart,
   ClipboardList,
+  Users,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useState } from 'react';
@@ -31,7 +32,7 @@ export default function Navbar() {
     ? [
         { id: 'admin-dashboard' as const, label: 'Dashboard', icon: LayoutDashboard },
         { id: 'products' as const, label: 'Kelola Barang', icon: Package },
-        { id: 'transaction' as const, label: 'Transaksi', icon: ShoppingCart },
+        { id: 'user-management' as const, label: 'Kelola User', icon: Users },
         { id: 'stock-report' as const, label: 'Laporan Stok', icon: ClipboardList },
         { id: 'sales-report' as const, label: 'Laporan Penjualan', icon: FileBarChart },
       ]
@@ -74,10 +75,6 @@ export default function Navbar() {
                 {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
               </Button>
             )}
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-emerald-700 rounded-full text-sm">
-              <span className="font-medium">{user.name || user.username}</span>
-              <span className="text-emerald-300">({user.role})</span>
-            </div>
             <Button
               variant="ghost"
               size="icon"
@@ -120,13 +117,6 @@ export default function Navbar() {
               </Button>
             ))}
           </nav>
-          <Separator className="my-3" />
-          <div className="px-3 pb-3">
-            <div className="p-3 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg text-xs space-y-1 sm:hidden">
-              <p className="font-semibold text-emerald-700 dark:text-emerald-300">{user.name || user.username}</p>
-              <p className="text-emerald-600 dark:text-emerald-400">{user.role}</p>
-            </div>
-          </div>
         </aside>
 
         {/* Overlay for mobile sidebar */}
@@ -164,6 +154,8 @@ function PageContent() {
       return <StockReport />;
     case 'sales-report':
       return <SalesReport />;
+    case 'user-management':
+      return <UserManagement />;
     default:
       return null;
   }
@@ -176,3 +168,4 @@ import ProductManagement from './ProductManagement';
 import TransactionPage from './TransactionPage';
 import StockReport from './StockReport';
 import SalesReport from './SalesReport';
+import UserManagement from './UserManagement';
