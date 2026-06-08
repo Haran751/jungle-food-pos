@@ -3,22 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useStore } from '@/store/useStore';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Loader2, Plus, Pencil, Trash2, Users, Search, Shield, UserCog } from 'lucide-react';
 
 interface UserData {
@@ -30,7 +16,6 @@ interface UserData {
 }
 
 export default function UserManagement() {
-  const { token } = useStore();
   const [users, setUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -51,13 +36,18 @@ export default function UserManagement() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
+      const currentToken = useStore.getState().token;
       const res = await fetch('/api/users', {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${currentToken}` },
       });
       const json = await res.json();
-      if (res.ok) setUsers(json.users);
-    } catch {
-      // ignore
+      if (res.ok) {
+        setUsers(json.users || []);
+      } else {
+        console.error('Fetch users failed:', json.error);
+      }
+    } catch (err) {
+      console.error('Fetch users error:', err);
     } finally {
       setLoading(false);
     }
@@ -85,9 +75,7 @@ export default function UserManagement() {
     setSaving(true);
     setError('');
     try {
-      const url = editMode ? '/api/users' : '/api/users';
-      const method = editMode ? 'PUT' : 'POST';
-
+      const currentToken = useStore.getState().token;
       const body: Record<string, unknown> = {
         username: form.username,
         role: form.role,
@@ -101,11 +89,11 @@ export default function UserManagement() {
         body.password = form.password;
       }
 
-      const res = await fetch(url, {
-        method,
+      const res = await fetch('/api/users', {
+        method: editMode ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${currentToken}`,
         },
         body: JSON.stringify(body),
       });
@@ -126,9 +114,10 @@ export default function UserManagement() {
 
   const handleDelete = async (id: string) => {
     try {
+      const currentToken = useStore.getState().token;
       const res = await fetch(`/api/users?id=${id}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${currentToken}` },
       });
       const json = await res.json();
       if (res.ok) {
@@ -157,7 +146,7 @@ export default function UserManagement() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">Kelola User</h1>
-          <p className="text-sm text-muted-foreground">Tambah, edit, dan hapus akun admin & kasir</p>
+          <p className="text-sm text-muted-foreground">Tambah, edit, dan hapus akun admin &amp; kasir</p>
         </div>
         <Button className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2" onClick={openCreateDialog}>
           <Plus className="w-4 h-4" />
@@ -165,7 +154,6 @@ export default function UserManagement() {
         </Button>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
@@ -202,7 +190,6 @@ export default function UserManagement() {
         </Card>
       </div>
 
-      {/* Search */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
@@ -213,7 +200,6 @@ export default function UserManagement() {
         />
       </div>
 
-      {/* User Table */}
       <Card>
         <CardContent className="p-0">
           {loading ? (
@@ -296,101 +282,92 @@ export default function UserManagement() {
       </Card>
 
       {/* Create/Edit Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{editMode ? 'Edit User' : 'Tambah User Baru'}</DialogTitle>
-          </DialogHeader>
-
-          <div className="space-y-4 py-2">
-            {error && (
-              <div className="p-2 bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 rounded text-sm">
-                {error}
+      {dialogOpen && (
+        <div className="fixed inset-0 z-50">
+          <div className="fixed inset-0 bg-black/60" onClick={() => setDialogOpen(false)} />
+          <div className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 bg-card rounded-lg shadow-xl p-6">
+            <h2 className="text-lg font-semibold mb-4">{editMode ? 'Edit User' : 'Tambah User Baru'}</h2>
+            <div className="space-y-4">
+              {error && (
+                <div className="p-2 bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 rounded text-sm">
+                  {error}
+                </div>
+              )}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Username</label>
+                <Input
+                  placeholder="Masukkan username"
+                  value={form.username}
+                  onChange={(e) => setForm({ ...form, username: e.target.value })}
+                />
               </div>
-            )}
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Username</label>
-              <Input
-                placeholder="Masukkan username"
-                value={form.username}
-                onChange={(e) => setForm({ ...form, username: e.target.value })}
-              />
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Password {editMode && <span className="text-muted-foreground font-normal">(kosongkan jika tidak diubah)</span>}
+                </label>
+                <Input
+                  type="password"
+                  placeholder={editMode ? 'Kosongkan jika tidak diubah' : 'Masukkan password'}
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Nama Lengkap</label>
+                <Input
+                  placeholder="Masukkan nama lengkap"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Role</label>
+                <select
+                  value={form.role}
+                  onChange={(e) => setForm({ ...form, role: e.target.value })}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                >
+                  <option value="ADMIN">Admin</option>
+                  <option value="KASIR">Kasir</option>
+                </select>
+              </div>
             </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">
-                Password {editMode && <span className="text-muted-foreground font-normal">(kosongkan jika tidak diubah)</span>}
-              </label>
-              <Input
-                type="password"
-                placeholder={editMode ? 'Kosongkan jika tidak diubah' : 'Masukkan password'}
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Nama Lengkap</label>
-              <Input
-                placeholder="Masukkan nama lengkap"
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Role</label>
-              <Select value={form.role} onValueChange={(val) => setForm({ ...form, role: val })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ADMIN">Admin</SelectItem>
-                  <SelectItem value="KASIR">Kasir</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex justify-end gap-2 mt-6">
+              <Button variant="outline" onClick={() => setDialogOpen(false)}>Batal</Button>
+              <Button
+                className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                onClick={handleSave}
+                disabled={saving || !form.username || (!editMode && !form.password)}
+              >
+                {saving && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                {editMode ? 'Simpan Perubahan' : 'Buat User'}
+              </Button>
             </div>
           </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              Batal
-            </Button>
-            <Button
-              className="bg-emerald-600 hover:bg-emerald-700 text-white"
-              onClick={handleSave}
-              disabled={saving || !form.username || (!editMode && !form.password)}
-            >
-              {saving && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
-              {editMode ? 'Simpan Perubahan' : 'Buat User'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
 
       {/* Delete Confirm Dialog */}
-      <Dialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Hapus User</DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-muted-foreground">
-            Apakah kamu yakin ingin menghapus user ini? Aksi ini tidak bisa dibatalkan.
-          </p>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteConfirm(null)}>
-              Batal
-            </Button>
-            <Button
-              className="bg-red-600 hover:bg-red-700 text-white"
-              onClick={() => deleteConfirm && handleDelete(deleteConfirm)}
-            >
-              Hapus
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {deleteConfirm && (
+        <div className="fixed inset-0 z-50">
+          <div className="fixed inset-0 bg-black/60" onClick={() => setDeleteConfirm(null)} />
+          <div className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 bg-card rounded-lg shadow-xl p-6">
+            <h2 className="text-lg font-semibold mb-4">Hapus User</h2>
+            <p className="text-sm text-muted-foreground mb-6">
+              Apakah kamu yakin ingin menghapus user ini? Aksi ini tidak bisa dibatalkan.
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setDeleteConfirm(null)}>Batal</Button>
+              <Button
+                className="bg-red-600 hover:bg-red-700 text-white"
+                onClick={() => handleDelete(deleteConfirm)}
+              >
+                Hapus
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

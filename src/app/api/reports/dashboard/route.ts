@@ -4,7 +4,6 @@ import Transaction from '@/models/Transaction';
 import TransactionDetail from '@/models/TransactionDetail';
 import Product from '@/models/Product';
 import { getTokenFromHeader, verifyToken } from '@/lib/jwt';
-import mongoose from 'mongoose';
 
 // GET /api/reports/dashboard - Dashboard statistics
 export async function GET(request: NextRequest) {
@@ -19,15 +18,9 @@ export async function GET(request: NextRequest) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    // Semua user (ADMIN & KASIR) liat data global — tanpa filter kasirId
     const todayFilter: Record<string, unknown> = { createdAt: { $gte: today } };
-    if (payload.role === 'KASIR') {
-      todayFilter.kasirId = new mongoose.Types.ObjectId(payload.id);
-    }
-
     const allFilter: Record<string, unknown> = {};
-    if (payload.role === 'KASIR') {
-      allFilter.kasirId = new mongoose.Types.ObjectId(payload.id);
-    }
 
     const [
       todayResult,
@@ -64,9 +57,7 @@ export async function GET(request: NextRequest) {
       const chartWhere: Record<string, unknown> = {
         createdAt: { $gte: date, $lt: nextDate },
       };
-      if (payload.role === 'KASIR') {
-        chartWhere.kasirId = new mongoose.Types.ObjectId(payload.id);
-      }
+      // Tanpa filter kasirId — semua user liat data global
 
       const [dayResult, dayCount] = await Promise.all([
         Transaction.aggregate([
