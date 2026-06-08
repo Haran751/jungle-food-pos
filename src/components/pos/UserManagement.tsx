@@ -46,8 +46,8 @@ export default function UserManagement() {
       if (res.ok) {
         setUsers(json.users || []);
       } else {
-        setFetchError(json.error || 'Gagal memuat data user');
-        console.error('Fetch users failed:', json.error);
+        setFetchError(json.detail || json.error || 'Gagal memuat data user');
+        console.error('Fetch users failed:', json);
       }
     } catch (err) {
       setFetchError('Terjadi kesalahan koneksi');
@@ -115,7 +115,7 @@ export default function UserManagement() {
         setDialogOpen(false);
         fetchUsers(authToken);
       } else {
-        setError(json.error || 'Gagal menyimpan user');
+        setError(json.detail || json.error || 'Gagal menyimpan user');
       }
     } catch {
       setError('Terjadi kesalahan koneksi');
@@ -140,7 +140,7 @@ export default function UserManagement() {
         setDeleteConfirm(null);
         fetchUsers(authToken);
       } else {
-        alert(json.error || 'Gagal menghapus user');
+        alert(json.detail || json.error || 'Gagal menghapus user');
       }
     } catch {
       alert('Terjadi kesalahan koneksi');

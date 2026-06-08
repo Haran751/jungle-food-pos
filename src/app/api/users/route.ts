@@ -17,7 +17,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Akses ditolak. Hanya admin.' }, { status: 403 });
     }
 
-    const users = await User.find().select('-password').sort({ createdAt: -1 }).lean();
+    const users = await User.find()
+      .select('-password')
+      .sort({ _id: -1 })
+      .lean();
 
     return NextResponse.json({
       users: users.map((u) => ({
@@ -25,12 +28,13 @@ export async function GET(request: NextRequest) {
         username: u.username,
         role: u.role,
         name: u.name,
-        createdAt: u.createdAt.toISOString(),
+        createdAt: u.createdAt ? new Date(u.createdAt).toISOString() : new Date().toISOString(),
       })),
     });
   } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
     console.error('Get users error:', error);
-    return NextResponse.json({ error: 'Terjadi kesalahan server' }, { status: 500 });
+    return NextResponse.json({ error: 'Terjadi kesalahan server', detail: message }, { status: 500 });
   }
 }
 
@@ -85,8 +89,9 @@ export async function POST(request: NextRequest) {
       },
     }, { status: 201 });
   } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
     console.error('Create user error:', error);
-    return NextResponse.json({ error: 'Terjadi kesalahan server' }, { status: 500 });
+    return NextResponse.json({ error: 'Terjadi kesalahan server', detail: message }, { status: 500 });
   }
 }
 
@@ -115,7 +120,6 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'User tidak ditemukan' }, { status: 404 });
     }
 
-    // Prevent self-demotion
     if (id === payload.id && role && role !== user.role) {
       return NextResponse.json({ error: 'Tidak bisa mengubah role sendiri' }, { status: 400 });
     }
@@ -145,8 +149,9 @@ export async function PUT(request: NextRequest) {
       },
     });
   } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
     console.error('Update user error:', error);
-    return NextResponse.json({ error: 'Terjadi kesalahan server' }, { status: 500 });
+    return NextResponse.json({ error: 'Terjadi kesalahan server', detail: message }, { status: 500 });
   }
 }
 
@@ -183,7 +188,8 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ message: 'User berhasil dihapus' });
   } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
     console.error('Delete user error:', error);
-    return NextResponse.json({ error: 'Terjadi kesalahan server' }, { status: 500 });
+    return NextResponse.json({ error: 'Terjadi kesalahan server', detail: message }, { status: 500 });
   }
 }
