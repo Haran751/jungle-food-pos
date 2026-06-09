@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { Loader2, Plus, Minus, Trash2, ShoppingCart, Package, CheckCircle, Printer } from 'lucide-react';
+import { Loader2, Plus, Minus, Trash2, ShoppingCart, Package, CheckCircle, Printer, X, ArrowUp } from 'lucide-react';
 
 export default function TransactionPage() {
   const { token, products, setProducts, cart, addToCart, removeFromCart, updateCartQuantity, clearCart, setLastTransaction } = useStore();
@@ -16,6 +16,7 @@ export default function TransactionPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [search, setSearch] = useState('');
+  const [cartOpen, setCartOpen] = useState(false);
   const receiptRef = useRef<HTMLDivElement>(null);
   const lastTransaction = useStore((s) => s.lastTransaction);
 
@@ -26,8 +27,9 @@ export default function TransactionPage() {
   const fetchProducts = async () => {
     setLoading(true);
     try {
+      const authToken = useStore.getState().token;
       const res = await fetch('/api/products', {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${authToken}` },
       });
       const json = await res.json();
       if (res.ok) setProducts(json.products);
@@ -39,6 +41,7 @@ export default function TransactionPage() {
   };
 
   const cartTotal = cart.reduce((sum, item) => sum + item.subtotal, 0);
+  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
   const changeAmount = Number(payment) - cartTotal;
   const isPaymentValid = Number(payment) >= cartTotal && cart.length > 0;
 
@@ -56,9 +59,10 @@ export default function TransactionPage() {
         subtotal: item.subtotal,
       }));
 
+      const authToken = useStore.getState().token;
       const res = await fetch('/api/transactions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
         body: JSON.stringify({ items, payment: Number(payment) }),
       });
 
@@ -164,7 +168,6 @@ export default function TransactionPage() {
 
             <div className="text-center mt-4">
               <p className="text-xs text-muted-foreground">Terima kasih atas kunjungan Anda!</p>
-              <p className="text-xs text-muted-foreground">Selamat menikmati &#128512;</p>
             </div>
           </CardContent>
         </Card>
@@ -192,7 +195,7 @@ export default function TransactionPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold">Transaksi Penjualan</h1>
+      <h1 className="text-xl sm:text-2xl font-bold">Transaksi Penjualan</h1>
 
       <div className="grid lg:grid-cols-5 gap-4">
         {/* Product Selection - Left Side */}
@@ -214,7 +217,7 @@ export default function TransactionPage() {
               <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto pr-1">
+            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 max-h-[50vh] lg:max-h-[60vh] overflow-y-auto pr-1">
               {filteredProducts.map((product) => (
                 <Card
                   key={product.id}
@@ -223,19 +226,19 @@ export default function TransactionPage() {
                   }`}
                   onClick={() => addToCart(product)}
                 >
-                  <CardContent className="p-3">
-                    <div className="h-16 bg-muted rounded-md flex items-center justify-center mb-2 overflow-hidden">
+                  <CardContent className="p-2 sm:p-3">
+                    <div className="h-12 sm:h-16 bg-muted rounded-md flex items-center justify-center mb-2 overflow-hidden">
                       {product.image ? (
                         <img src={product.image} alt={product.name} className="w-full h-full object-cover rounded-md" />
                       ) : (
-                        <Package className="w-8 h-8 text-muted-foreground/30" />
+                        <Package className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground/30" />
                       )}
                     </div>
-                    <p className="font-medium text-sm truncate">{product.name}</p>
-                    <p className="text-emerald-600 dark:text-emerald-400 font-bold text-sm">{formatRp(product.price)}</p>
-                    <p className="text-xs text-muted-foreground">Stok: {product.stock}</p>
+                    <p className="font-medium text-xs sm:text-sm truncate">{product.name}</p>
+                    <p className="text-emerald-600 dark:text-emerald-400 font-bold text-xs sm:text-sm">{formatRp(product.price)}</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">Stok: {product.stock}</p>
                     {cart.find((c) => c.id === product.id) && (
-                      <div className="mt-1 text-xs font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950 rounded px-2 py-0.5 text-center">
+                      <div className="mt-1 text-[10px] sm:text-xs font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950 rounded px-2 py-0.5 text-center">
                         {cart.find((c) => c.id === product.id)?.quantity} dipilih
                       </div>
                     )}
@@ -246,8 +249,8 @@ export default function TransactionPage() {
           )}
         </div>
 
-        {/* Cart - Right Side */}
-        <div className="lg:col-span-2">
+        {/* Cart - Desktop (Right Side) */}
+        <div className="hidden lg:block lg:col-span-2">
           <Card className="sticky top-20">
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
@@ -262,7 +265,6 @@ export default function TransactionPage() {
                 </div>
               )}
 
-              {/* Cart Items */}
               <div className="space-y-2 max-h-48 overflow-y-auto">
                 {cart.length === 0 ? (
                   <p className="text-center text-sm text-muted-foreground py-8">
@@ -313,7 +315,6 @@ export default function TransactionPage() {
 
               <Separator />
 
-              {/* Payment */}
               <div className="space-y-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Total</span>
@@ -331,7 +332,6 @@ export default function TransactionPage() {
                   />
                 </div>
 
-                {/* Quick payment buttons */}
                 {cartTotal > 0 && (
                   <div className="flex gap-1 flex-wrap">
                     {[cartTotal, Math.ceil(cartTotal / 5000) * 5000, Math.ceil(cartTotal / 10000) * 10000, 50000, 100000]
@@ -387,6 +387,169 @@ export default function TransactionPage() {
           </Card>
         </div>
       </div>
+
+      {/* ===== MOBILE: Floating Cart Button ===== */}
+      {cart.length > 0 && (
+        <div className="lg:hidden fixed bottom-4 right-4 z-50">
+          <button
+            onClick={() => setCartOpen(true)}
+            className="bg-emerald-600 text-white rounded-full shadow-2xl p-4 flex items-center gap-2 hover:bg-emerald-700 active:scale-95 transition-all"
+          >
+            <ShoppingCart className="w-6 h-6" />
+            <span className="bg-white text-emerald-600 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
+              {cartCount}
+            </span>
+            <span className="font-bold text-sm hidden sm:inline">{formatRp(cartTotal)}</span>
+          </button>
+        </div>
+      )}
+
+      {/* ===== MOBILE: Cart Drawer (Bottom Sheet) ===== */}
+      {cartOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 z-50 bg-black/50 lg:hidden"
+            onClick={() => setCartOpen(false)}
+          />
+
+          {/* Bottom Sheet */}
+          <div className="fixed inset-x-0 bottom-0 z-50 bg-card rounded-t-2xl shadow-2xl max-h-[85vh] flex flex-col lg:hidden">
+            {/* Handle bar */}
+            <div className="flex justify-center pt-2 pb-1">
+              <div className="w-10 h-1 bg-muted rounded-full" />
+            </div>
+
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 pb-2 border-b border-border">
+              <h3 className="font-bold text-base flex items-center gap-2">
+                <ShoppingCart className="w-4 h-4" />
+                Keranjang ({cart.length} item)
+              </h3>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setCartOpen(false)}
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+
+            {/* Cart Items (scrollable) */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+              {error && (
+                <div className="p-2 bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 rounded text-xs">
+                  {error}
+                </div>
+              )}
+
+              {cart.map((item) => (
+                <div key={item.id} className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{item.name}</p>
+                    <p className="text-xs text-muted-foreground">{formatRp(item.price)}</p>
+                    <p className="text-sm font-bold text-emerald-600">{formatRp(item.subtotal)}</p>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => updateCartQuantity(item.id, item.quantity - 1)}
+                    >
+                      <Minus className="w-3 h-3" />
+                    </Button>
+                    <span className="w-8 text-center text-sm font-bold">{item.quantity}</span>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => updateCartQuantity(item.id, item.quantity + 1)}
+                      disabled={item.quantity >= item.stock}
+                    >
+                      <Plus className="w-3 h-3" />
+                    </Button>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-red-500"
+                    onClick={() => removeFromCart(item.id)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+
+            {/* Payment Section (sticky bottom) */}
+            <div className="border-t border-border p-4 space-y-3 bg-card">
+              <div className="flex justify-between">
+                <span className="font-medium">Total</span>
+                <span className="font-bold text-lg">{formatRp(cartTotal)}</span>
+              </div>
+
+              <Input
+                type="number"
+                placeholder="Jumlah bayar"
+                value={payment}
+                onChange={(e) => setPayment(e.target.value)}
+                className="h-11 text-base"
+              />
+
+              {cartTotal > 0 && (
+                <div className="flex gap-1 flex-wrap">
+                  {[cartTotal, Math.ceil(cartTotal / 5000) * 5000, Math.ceil(cartTotal / 10000) * 10000, 50000, 100000]
+                    .filter((v, i, a) => v > 0 && a.indexOf(v) === i)
+                    .slice(0, 4)
+                    .map((amount) => (
+                      <Button
+                        key={amount}
+                        variant="outline"
+                        size="sm"
+                        className="text-xs h-8"
+                        onClick={() => setPayment(amount.toString())}
+                      >
+                        {formatRp(amount)}
+                      </Button>
+                    ))}
+                </div>
+              )}
+
+              {Number(payment) >= cartTotal && cartTotal > 0 && (
+                <div className="flex justify-between items-center p-3 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg">
+                  <span className="text-sm font-medium">Kembalian</span>
+                  <span className="text-base font-bold text-emerald-600 dark:text-emerald-400">
+                    {formatRp(changeAmount)}
+                  </span>
+                </div>
+              )}
+
+              <Button
+                className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-base"
+                disabled={!isPaymentValid || processing}
+                onClick={handleCheckout}
+              >
+                {processing ? (
+                  <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                ) : (
+                  <CheckCircle className="w-5 h-5 mr-2" />
+                )}
+                Proses Pembayaran
+              </Button>
+
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={clearCart}
+              >
+                Kosongkan Keranjang
+              </Button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

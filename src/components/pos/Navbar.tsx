@@ -2,7 +2,6 @@
 
 import { useStore } from '@/store/useStore';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import {
   UtensilsCrossed,
   Moon,
@@ -45,8 +44,8 @@ export default function Navbar() {
     <div className="min-h-screen flex flex-col">
       {/* Top Navbar */}
       <header className="sticky top-0 z-50 bg-emerald-600 dark:bg-emerald-800 text-white shadow-lg">
-        <div className="flex items-center justify-between px-4 h-14">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between px-3 sm:px-4 h-14">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Button
               variant="ghost"
               size="icon"
@@ -61,10 +60,11 @@ export default function Navbar() {
                 )}
               </svg>
             </Button>
-            <UtensilsCrossed className="w-6 h-6" />
-            <span className="font-bold text-sm sm:text-base">Jungle Food POS</span>
+            <UtensilsCrossed className="w-5 h-5 sm:w-6 sm:h-6" />
+            <span className="font-bold text-xs sm:text-base">Jungle Food POS</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
+            <span className="text-xs hidden sm:inline text-emerald-100">{user.name}</span>
             {mounted && theme && (
               <Button
                 variant="ghost"
@@ -72,7 +72,7 @@ export default function Navbar() {
                 className="text-white hover:bg-emerald-700"
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               >
-                {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                {theme === 'dark' ? <Sun className="w-4 h-4 sm:w-5 sm:h-5" /> : <Moon className="w-4 h-4 sm:w-5 sm:h-5" />}
               </Button>
             )}
             <Button
@@ -81,7 +81,7 @@ export default function Navbar() {
               className="text-white hover:bg-red-600"
               onClick={logout}
             >
-              <LogOut className="w-5 h-5" />
+              <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
             </Button>
           </div>
         </div>
@@ -91,7 +91,7 @@ export default function Navbar() {
         {/* Sidebar */}
         <aside
           className={`
-            fixed inset-y-0 top-14 z-40 w-56 bg-card border-r border-border shadow-lg
+            fixed inset-y-0 top-14 z-40 w-52 sm:w-56 bg-card border-r border-border shadow-lg
             transform transition-transform duration-300 ease-in-out
             lg:sticky lg:translate-x-0
             ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
@@ -113,7 +113,7 @@ export default function Navbar() {
                 }}
               >
                 <item.icon className="w-4 h-4" />
-                {item.label}
+                <span className="text-sm">{item.label}</span>
               </Button>
             ))}
           </nav>
@@ -128,8 +128,8 @@ export default function Navbar() {
         )}
 
         {/* Main Content */}
-        <main className="flex-1 p-4 lg:p-6 overflow-x-hidden">
-          <div className="max-w-6xl mx-auto">
+        <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-x-hidden">
+          <div className="max-w-7xl mx-auto">
             <PageContent />
           </div>
         </main>
@@ -161,7 +161,6 @@ function PageContent() {
   }
 }
 
-// Import all page components
 import AdminDashboard from './AdminDashboard';
 import CashierDashboard from './CashierDashboard';
 import ProductManagement from './ProductManagement';

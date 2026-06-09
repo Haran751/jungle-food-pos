@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useStore } from '@/store/useStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, DollarSign, ShoppingBag, Package, TrendingDown, Star, AlertCircle } from 'lucide-react';
+import { Loader2, DollarSign, ShoppingBag, Package, TrendingUp, Star, AlertCircle } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell,
 } from 'recharts';
@@ -84,27 +84,28 @@ export default function AdminDashboard() {
   const stats = [
     { label: 'Penjualan Hari Ini', value: formatRp(data.stats.todaySales), icon: DollarSign, color: 'bg-emerald-500' },
     { label: 'Transaksi Hari Ini', value: data.stats.todayTransactions.toString(), icon: ShoppingBag, color: 'bg-blue-500' },
-    { label: 'Total Penjualan', value: formatRp(data.stats.totalSales), icon: TrendingDown, color: 'bg-amber-500' },
+    { label: 'Total Penjualan', value: formatRp(data.stats.totalSales), icon: TrendingUp, color: 'bg-amber-500' },
     { label: 'Total Transaksi', value: data.stats.totalTransactions.toString(), icon: ShoppingBag, color: 'bg-purple-500' },
     { label: 'Total Produk', value: data.stats.totalProducts.toString(), icon: Package, color: 'bg-teal-500' },
     { label: 'Stok Menipis', value: data.stats.lowStockProducts.toString(), icon: Package, color: 'bg-red-500' },
   ];
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Dashboard Admin</h1>
+    <div className="space-y-4 sm:space-y-6">
+      <h1 className="text-lg sm:text-2xl font-bold">Dashboard Admin</h1>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+      {/* Stats Cards - Mobile: horizontal scroll, Desktop: grid */}
+      <div className="flex gap-3 overflow-x-auto pb-2 sm:pb-0 sm:grid sm:grid-cols-2 md:grid-cols-3 sm:overflow-visible -mx-1 px-1 sm:mx-0 sm:px-0">
         {stats.map((s) => (
-          <Card key={s.label} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 ${s.color} rounded-lg flex items-center justify-center flex-shrink-0`}>
-                  <s.icon className="w-5 h-5 text-white" />
+          <Card key={s.label} className="hover:shadow-md transition-shadow min-w-[140px] sm:min-w-0 flex-shrink-0 sm:flex-shrink">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className={`w-9 h-9 sm:w-10 sm:h-10 ${s.color} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                  <s.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs text-muted-foreground truncate">{s.label}</p>
-                  <p className="text-lg font-bold truncate">{s.value}</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{s.label}</p>
+                  <p className="text-sm sm:text-lg font-bold truncate">{s.value}</p>
                 </div>
               </div>
             </CardContent>
@@ -112,17 +113,19 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
+      {/* Charts - Stack on mobile, side-by-side on desktop */}
+      <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
+        {/* Sales Chart */}
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Grafik Penjualan 7 Hari Terakhir</CardTitle>
+          <CardHeader className="pb-2 pt-3 sm:pt-6 px-4 sm:px-6">
+            <CardTitle className="text-sm sm:text-base">Grafik Penjualan 7 Hari Terakhir</CardTitle>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={data.chartData}>
+          <CardContent className="px-2 sm:px-6 pb-4 sm:pb-6">
+            <ResponsiveContainer width="100%" height={200} minWidth={260}>
+              <BarChart data={data.chartData} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+                <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
                 <Tooltip
                   formatter={(value: number) => formatRp(value)}
                   labelFormatter={(label) => `Hari: ${label}`}
@@ -134,17 +137,18 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
+        {/* Top Products Pie Chart */}
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
+          <CardHeader className="pb-2 pt-3 sm:pt-6 px-4 sm:px-6">
+            <CardTitle className="text-sm sm:text-base flex items-center gap-2">
               <Star className="w-4 h-4 text-amber-500" />
               Produk Terlaris
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
             {data.topProducts.length > 0 ? (
-              <div className="flex flex-col md:flex-row items-center gap-4">
-                <ResponsiveContainer width="100%" height={200}>
+              <div className="flex flex-col sm:flex-row items-center gap-4">
+                <ResponsiveContainer width="100%" height={180} minWidth={200}>
                   <PieChart>
                     <Pie
                       data={data.topProducts}
@@ -152,7 +156,7 @@ export default function AdminDashboard() {
                       nameKey="name"
                       cx="50%"
                       cy="50%"
-                      outerRadius={80}
+                      outerRadius={70}
                     >
                       {data.topProducts.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -163,18 +167,18 @@ export default function AdminDashboard() {
                 </ResponsiveContainer>
                 <div className="w-full space-y-2">
                   {data.topProducts.map((p, i) => (
-                    <div key={p.name} className="flex items-center justify-between text-sm">
+                    <div key={p.name} className="flex items-center justify-between text-xs sm:text-sm">
                       <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                        <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full flex-shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
                         <span className="truncate">{p.name}</span>
                       </div>
-                      <span className="font-medium whitespace-nowrap">{p.quantity} pcs</span>
+                      <span className="font-medium whitespace-nowrap ml-2">{p.quantity} pcs</span>
                     </div>
                   ))}
                 </div>
               </div>
             ) : (
-              <div className="flex items-center justify-center h-[200px] text-muted-foreground text-sm">
+              <div className="flex items-center justify-center h-[150px] sm:h-[200px] text-muted-foreground text-sm">
                 Belum ada data penjualan
               </div>
             )}
@@ -182,18 +186,19 @@ export default function AdminDashboard() {
         </Card>
       </div>
 
+      {/* Transaction Trend Line Chart */}
       <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">Tren Jumlah Transaksi 7 Hari Terakhir</CardTitle>
+        <CardHeader className="pb-2 pt-3 sm:pt-6 px-4 sm:px-6">
+          <CardTitle className="text-sm sm:text-base">Tren Jumlah Transaksi 7 Hari Terakhir</CardTitle>
         </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={data.chartData}>
+        <CardContent className="px-2 sm:px-6 pb-4 sm:pb-6">
+          <ResponsiveContainer width="100%" height={200} minWidth={280}>
+            <LineChart data={data.chartData} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-              <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-              <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
+              <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+              <YAxis tick={{ fontSize: 10 }} allowDecimals={false} />
               <Tooltip contentStyle={{ borderRadius: '8px', fontSize: '12px' }} />
-              <Line type="monotone" dataKey="count" stroke="#f59e0b" strokeWidth={2} dot={{ fill: '#f59e0b', r: 4 }} />
+              <Line type="monotone" dataKey="count" stroke="#f59e0b" strokeWidth={2} dot={{ fill: '#f59e0b', r: 3 }} />
             </LineChart>
           </ResponsiveContainer>
         </CardContent>
