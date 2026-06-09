@@ -15,12 +15,10 @@ import {
   Users,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
-import { useState } from 'react';
 
 export default function Navbar() {
   const { user, logout, currentPage, setPage } = useStore();
   const { theme, setTheme } = useTheme();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const mounted = typeof window !== 'undefined';
 
   if (!user) return null;
@@ -42,25 +40,10 @@ export default function Navbar() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Top Header - slim di mobile, normal di desktop */}
+      {/* Top Header */}
       <header className="sticky top-0 z-50 bg-emerald-600 dark:bg-emerald-800 text-white shadow-lg">
         <div className="flex items-center justify-between px-3 sm:px-4 lg:px-6 h-12 sm:h-14">
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Hamburger menu - hidden di mobile (karena ada bottom nav) */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-white hover:bg-emerald-700 hidden lg:flex"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                {sidebarOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                )}
-              </svg>
-            </Button>
             <UtensilsCrossed className="w-5 h-5 sm:w-6 sm:h-6" />
             <span className="font-bold text-xs sm:text-sm lg:text-base">Jungle Food POS</span>
           </div>
@@ -88,16 +71,8 @@ export default function Navbar() {
       </header>
 
       <div className="flex flex-1">
-        {/* Desktop Sidebar - hidden di mobile/tablet, tampil di lg+ */}
-        <aside
-          className={`
-            fixed inset-y-0 top-12 lg:top-14 z-40 w-56 bg-card border-r border-border shadow-lg
-            transform transition-transform duration-300 ease-in-out
-            lg:sticky lg:translate-x-0
-            ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-            hidden lg:block
-          `}
-        >
+        {/* Desktop Sidebar - langsung nempel kiri, tanpa hamburger */}
+        <aside className="hidden lg:block lg:sticky lg:top-14 h-[calc(100vh-3.5rem)] w-56 bg-card border-r border-border shadow-lg overflow-y-auto shrink-0">
           <nav className="p-3 space-y-1 mt-2">
             {navItems.map((item) => (
               <Button
@@ -108,10 +83,7 @@ export default function Navbar() {
                     ? 'bg-emerald-600 text-white hover:bg-emerald-700'
                     : 'hover:bg-emerald-50 dark:hover:bg-emerald-950'
                 }`}
-                onClick={() => {
-                  setPage(item.id);
-                  setSidebarOpen(false);
-                }}
+                onClick={() => setPage(item.id)}
               >
                 <item.icon className="w-4 h-4" />
                 {item.label}
@@ -120,23 +92,15 @@ export default function Navbar() {
           </nav>
         </aside>
 
-        {/* Desktop overlay */}
-        {sidebarOpen && (
-          <div
-            className="fixed inset-0 top-12 lg:top-14 z-30 bg-black/50 hidden lg:block"
-            onClick={() => setSidebarOpen(false)}
-          />
-        )}
-
-        {/* Main Content - padding bottom buat space bottom nav di mobile */}
-        <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-x-hidden pb-20 sm:pb-6">
+        {/* Main Content */}
+        <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-x-hidden pb-20 lg:pb-6">
           <div className="max-w-6xl mx-auto">
             <PageContent />
           </div>
         </main>
       </div>
 
-      {/* Bottom Navigation Bar - tampil di mobile/tablet, hidden di desktop */}
+      {/* Bottom Navigation Bar - mobile/tablet only */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-card/95 dark:bg-card/95 backdrop-blur-md border-t border-border shadow-[0_-2px_10px_rgba(0,0,0,0.1)]">
         <div className="flex items-center justify-around h-16 px-1">
           {navItems.map((item) => {
@@ -192,7 +156,6 @@ function PageContent() {
   }
 }
 
-// Import all page components
 import AdminDashboard from './AdminDashboard';
 import CashierDashboard from './CashierDashboard';
 import ProductManagement from './ProductManagement';
