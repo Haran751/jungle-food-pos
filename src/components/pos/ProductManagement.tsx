@@ -179,7 +179,7 @@ export default function ProductManagement() {
           <p>Tidak ada barang ditemukan</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {products.map((product) => (
             <Card key={product.id} className="overflow-hidden hover:shadow-md transition-shadow">
               <div className="h-28 sm:h-36 bg-muted flex items-center justify-center overflow-hidden">
