@@ -178,17 +178,18 @@ export default function ProductManagement() {
   const categories = ['Semua', 'Makanan', 'Snack', 'Minuman'];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
+      {/* Header - stack di mobile */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <h1 className="text-2xl font-bold">Manajemen Data Barang</h1>
-        <Button onClick={openAddDialog} className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2">
+        <h1 className="text-xl sm:text-2xl font-bold">Manajemen Data Barang</h1>
+        <Button onClick={openAddDialog} className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 w-full sm:w-auto">
           <Plus className="w-4 h-4" />
           Tambah Barang
         </Button>
       </div>
 
-      {/* Search & Filter */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      {/* Search & Filter - stack di mobile */}
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
@@ -196,7 +197,7 @@ export default function ProductManagement() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            className="pl-9 h-10"
+            className="pl-9 h-10 text-sm"
           />
         </div>
         <div className="flex gap-2 flex-wrap">
@@ -210,14 +211,14 @@ export default function ProductManagement() {
               }}
               className={
                 category === (cat === 'Semua' ? '' : cat)
-                  ? 'bg-emerald-600 text-white'
-                  : ''
+                  ? 'bg-emerald-600 text-white text-xs px-3'
+                  : 'text-xs px-3'
               }
             >
               {cat}
             </Button>
           ))}
-          <Button variant="outline" size="sm" onClick={handleSearch}>
+          <Button variant="outline" size="sm" onClick={handleSearch} className="text-xs">
             Cari
           </Button>
         </div>
@@ -234,10 +235,10 @@ export default function ProductManagement() {
           <p>Tidak ada barang ditemukan</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {products.map((product) => (
             <Card key={product.id} className="overflow-hidden hover:shadow-md transition-shadow">
-              <div className="h-36 bg-muted flex items-center justify-center overflow-hidden">
+              <div className="h-28 sm:h-36 bg-muted flex items-center justify-center overflow-hidden">
                 {product.image ? (
                   <img
                     src={product.image}
@@ -245,31 +246,31 @@ export default function ProductManagement() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <Package className="w-12 h-12 text-muted-foreground/30" />
+                  <Package className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground/30" />
                 )}
               </div>
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between">
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-start justify-between gap-1">
                   <div className="min-w-0 flex-1">
-                    <h3 className="font-semibold truncate">{product.name}</h3>
-                    <p className="text-emerald-600 dark:text-emerald-400 font-bold text-lg mt-1">
+                    <h3 className="font-semibold text-sm sm:text-base truncate">{product.name}</h3>
+                    <p className="text-emerald-600 dark:text-emerald-400 font-bold text-sm sm:text-lg mt-0.5 sm:mt-1">
                       {formatRp(product.price)}
                     </p>
-                    <div className="flex items-center gap-3 mt-2 text-sm text-muted-foreground">
-                      <span className={`px-2 py-0.5 rounded-full text-xs ${
+                    <div className="flex items-center gap-2 mt-1.5 sm:mt-2 text-sm text-muted-foreground">
+                      <span className={`px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-xs ${
                         product.stock < 10 ? 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400' : 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400'
                       }`}>
                         Stok: {product.stock}
                       </span>
-                      <span className="text-xs">{product.category}</span>
+                      <span className="text-[10px] sm:text-xs">{product.category}</span>
                     </div>
                   </div>
-                  <div className="flex gap-1 ml-2">
+                  <div className="flex flex-col gap-1 ml-1">
                     <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => openEditDialog(product)}>
-                      <Pencil className="w-4 h-4" />
+                      <Pencil className="w-3.5 h-3.5" />
                     </Button>
                     <Button size="icon" variant="ghost" className="h-8 w-8 text-red-500 hover:text-red-600" onClick={() => handleDelete(product.id)}>
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3.5 h-3.5" />
                     </Button>
                   </div>
                 </div>
@@ -279,11 +280,11 @@ export default function ProductManagement() {
         </div>
       )}
 
-      {/* Add/Edit Dialog */}
+      {/* Add/Edit Dialog - responsive di mobile */}
       <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto mx-4 sm:mx-0">
           <DialogHeader>
-            <DialogTitle>{editProduct ? 'Edit Barang' : 'Tambah Barang Baru'}</DialogTitle>
+            <DialogTitle className="text-lg">{editProduct ? 'Edit Barang' : 'Tambah Barang Baru'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             {error && (
@@ -294,13 +295,13 @@ export default function ProductManagement() {
 
             {/* Image Upload */}
             <div className="space-y-2">
-              <Label>Gambar Produk</Label>
+              <Label className="text-sm">Gambar Produk</Label>
               <div className="flex items-center gap-3">
-                <div className="w-20 h-20 rounded-lg bg-muted flex items-center justify-center overflow-hidden border">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-muted flex items-center justify-center overflow-hidden border">
                   {formImage ? (
                     <img src={formImage} alt="Preview" className="w-full h-full object-cover" />
                   ) : (
-                    <Upload className="w-6 h-6 text-muted-foreground/30" />
+                    <Upload className="w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground/30" />
                   )}
                 </div>
                 <div className="flex-1 space-y-2">
@@ -316,12 +317,13 @@ export default function ProductManagement() {
                     size="sm"
                     onClick={() => fileRef.current?.click()}
                     disabled={uploading}
+                    className="text-xs"
                   >
-                    {uploading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
-                    {uploading ? 'Mengupload...' : 'Upload Gambar'}
+                    {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <Upload className="w-3.5 h-3.5 mr-1.5" />}
+                    {uploading ? 'Uploading...' : 'Upload Gambar'}
                   </Button>
                   {formImage && (
-                    <Button variant="ghost" size="sm" onClick={() => setFormImage('')}>
+                    <Button variant="ghost" size="sm" onClick={() => setFormImage('')} className="text-xs">
                       Hapus gambar
                     </Button>
                   )}
@@ -330,23 +332,23 @@ export default function ProductManagement() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="name">Nama Barang *</Label>
-              <Input id="name" value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="Cth: Nasi Mentai" />
+              <Label htmlFor="name" className="text-sm">Nama Barang *</Label>
+              <Input id="name" value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="Cth: Nasi Mentai" className="text-sm" />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label htmlFor="price">Harga (Rp) *</Label>
-                <Input id="price" type="number" value={formPrice} onChange={(e) => setFormPrice(e.target.value)} placeholder="15000" />
+                <Label htmlFor="price" className="text-sm">Harga (Rp) *</Label>
+                <Input id="price" type="number" value={formPrice} onChange={(e) => setFormPrice(e.target.value)} placeholder="15000" className="text-sm" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="stock">Stok</Label>
-                <Input id="stock" type="number" value={formStock} onChange={(e) => setFormStock(e.target.value)} placeholder="50" />
+                <Label htmlFor="stock" className="text-sm">Stok</Label>
+                <Input id="stock" type="number" value={formStock} onChange={(e) => setFormStock(e.target.value)} placeholder="50" className="text-sm" />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="category">Kategori</Label>
+              <Label htmlFor="category" className="text-sm">Kategori</Label>
               <select
                 id="category"
                 value={formCategory}
@@ -360,11 +362,11 @@ export default function ProductManagement() {
             </div>
 
             <div className="flex gap-2 pt-2">
-              <Button variant="outline" className="flex-1" onClick={() => { setIsDialogOpen(false); resetForm(); }}>
+              <Button variant="outline" className="flex-1 text-sm" onClick={() => { setIsDialogOpen(false); resetForm(); }}>
                 Batal
               </Button>
               <Button
-                className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
+                className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-sm"
                 onClick={handleSave}
                 disabled={saving || !formName || !formPrice}
               >

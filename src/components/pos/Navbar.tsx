@@ -42,14 +42,15 @@ export default function Navbar() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Top Navbar */}
+      {/* Top Header - slim di mobile, normal di desktop */}
       <header className="sticky top-0 z-50 bg-emerald-600 dark:bg-emerald-800 text-white shadow-lg">
-        <div className="flex items-center justify-between px-3 sm:px-4 h-14">
+        <div className="flex items-center justify-between px-3 sm:px-4 lg:px-6 h-12 sm:h-14">
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Hamburger menu - hidden di mobile (karena ada bottom nav) */}
             <Button
               variant="ghost"
               size="icon"
-              className="text-white hover:bg-emerald-700 lg:hidden"
+              className="text-white hover:bg-emerald-700 hidden lg:flex"
               onClick={() => setSidebarOpen(!sidebarOpen)}
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -61,15 +62,14 @@ export default function Navbar() {
               </svg>
             </Button>
             <UtensilsCrossed className="w-5 h-5 sm:w-6 sm:h-6" />
-            <span className="font-bold text-xs sm:text-base">Jungle Food POS</span>
+            <span className="font-bold text-xs sm:text-sm lg:text-base">Jungle Food POS</span>
           </div>
           <div className="flex items-center gap-1 sm:gap-2">
-            <span className="text-xs hidden sm:inline text-emerald-100">{user.name}</span>
             {mounted && theme && (
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-white hover:bg-emerald-700"
+                className="text-white hover:bg-emerald-700 h-8 w-8 sm:h-9 sm:w-9"
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               >
                 {theme === 'dark' ? <Sun className="w-4 h-4 sm:w-5 sm:h-5" /> : <Moon className="w-4 h-4 sm:w-5 sm:h-5" />}
@@ -78,7 +78,7 @@ export default function Navbar() {
             <Button
               variant="ghost"
               size="icon"
-              className="text-white hover:bg-red-600"
+              className="text-white hover:bg-red-600 h-8 w-8 sm:h-9 sm:w-9"
               onClick={logout}
             >
               <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -88,13 +88,14 @@ export default function Navbar() {
       </header>
 
       <div className="flex flex-1">
-        {/* Sidebar */}
+        {/* Desktop Sidebar - hidden di mobile/tablet, tampil di lg+ */}
         <aside
           className={`
-            fixed inset-y-0 top-14 z-40 w-52 sm:w-56 bg-card border-r border-border shadow-lg
+            fixed inset-y-0 top-12 lg:top-14 z-40 w-56 bg-card border-r border-border shadow-lg
             transform transition-transform duration-300 ease-in-out
             lg:sticky lg:translate-x-0
             ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+            hidden lg:block
           `}
         >
           <nav className="p-3 space-y-1 mt-2">
@@ -113,27 +114,57 @@ export default function Navbar() {
                 }}
               >
                 <item.icon className="w-4 h-4" />
-                <span className="text-sm">{item.label}</span>
+                {item.label}
               </Button>
             ))}
           </nav>
         </aside>
 
-        {/* Overlay for mobile sidebar */}
+        {/* Desktop overlay */}
         {sidebarOpen && (
           <div
-            className="fixed inset-0 top-14 z-30 bg-black/50 lg:hidden"
+            className="fixed inset-0 top-12 lg:top-14 z-30 bg-black/50 hidden lg:block"
             onClick={() => setSidebarOpen(false)}
           />
         )}
 
-        {/* Main Content */}
-        <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-x-hidden">
-          <div className="max-w-7xl mx-auto">
+        {/* Main Content - padding bottom buat space bottom nav di mobile */}
+        <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-x-hidden pb-20 sm:pb-6">
+          <div className="max-w-6xl mx-auto">
             <PageContent />
           </div>
         </main>
       </div>
+
+      {/* Bottom Navigation Bar - tampil di mobile/tablet, hidden di desktop */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-card/95 dark:bg-card/95 backdrop-blur-md border-t border-border shadow-[0_-2px_10px_rgba(0,0,0,0.1)]">
+        <div className="flex items-center justify-around h-16 px-1">
+          {navItems.map((item) => {
+            const isActive = currentPage === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setPage(item.id)}
+                className={`
+                  flex flex-col items-center justify-center gap-0.5 flex-1 py-1 rounded-lg
+                  transition-all duration-200 min-w-0
+                  ${isActive
+                    ? 'text-emerald-600 dark:text-emerald-400'
+                    : 'text-gray-500 dark:text-gray-400 active:text-emerald-600 dark:active:text-emerald-400'
+                  }
+                `}
+              >
+                <div className={`p-1 rounded-full transition-all duration-200 ${isActive ? 'bg-emerald-100 dark:bg-emerald-900/50 scale-110' : ''}`}>
+                  <item.icon className={`w-5 h-5 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.5]'}`} />
+                </div>
+                <span className={`text-[10px] leading-tight truncate w-full text-center ${isActive ? 'font-semibold' : 'font-medium'}`}>
+                  {item.label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </nav>
     </div>
   );
 }
@@ -161,6 +192,7 @@ function PageContent() {
   }
 }
 
+// Import all page components
 import AdminDashboard from './AdminDashboard';
 import CashierDashboard from './CashierDashboard';
 import ProductManagement from './ProductManagement';

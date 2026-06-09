@@ -5,7 +5,7 @@ import { useStore, Transaction } from '@/store/useStore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Loader2, Search, Download, FileBarChart, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Loader2, Search, Download, FileBarChart, ChevronLeft, ChevronRight, ShoppingCart } from 'lucide-react';
 
 export default function SalesReport() {
   const { token } = useStore();
@@ -59,7 +59,6 @@ export default function SalesReport() {
     try {
       const { default: jsPDF } = await import('jspdf');
 
-      // Fetch all transactions for PDF
       const params = new URLSearchParams();
       if (dateFrom) params.set('dateFrom', dateFrom);
       if (dateTo) params.set('dateTo', dateTo);
@@ -75,7 +74,6 @@ export default function SalesReport() {
 
       const doc = new jsPDF();
 
-      // Title
       doc.setFontSize(16);
       doc.setFont('helvetica', 'bold');
       doc.text('Stand Kantin "Jungle Food"', 105, 20, { align: 'center' });
@@ -93,7 +91,6 @@ export default function SalesReport() {
         doc.text(`Periode: ${dateFrom || '...'} s/d ${dateTo || '...'}`, 105, 45, { align: 'center' });
       }
 
-      // Summary
       let y = dateFrom || dateTo ? 55 : 50;
       doc.setFont('helvetica', 'bold');
       doc.text('Ringkasan:', 14, y);
@@ -101,7 +98,6 @@ export default function SalesReport() {
       doc.text(`Total Transaksi: ${allTransactions.length}`, 14, y + 7);
       doc.text(`Total Pendapatan: ${formatRp(totalRevenue)}`, 14, y + 14);
 
-      // Table header
       y += 24;
       doc.setFillColor(16, 185, 129);
       doc.rect(14, y - 5, 182, 8, 'F');
@@ -116,7 +112,6 @@ export default function SalesReport() {
       doc.text('Bayar', 150, y);
       doc.text('Kembali', 172, y);
 
-      // Table rows
       doc.setTextColor(0, 0, 0);
       doc.setFont('helvetica', 'normal');
       allTransactions.forEach((trx: Transaction, index: number) => {
@@ -135,7 +130,6 @@ export default function SalesReport() {
         doc.text(`Rp ${trx.change.toLocaleString('id-ID')}`, 172, y);
       });
 
-      // Footer
       const pageCount = doc.getNumberOfPages();
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
@@ -155,38 +149,39 @@ export default function SalesReport() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <h1 className="text-2xl font-bold">Laporan Penjualan</h1>
-        <Button onClick={exportPDF} className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2">
+        <h1 className="text-xl sm:text-2xl font-bold">Laporan Penjualan</h1>
+        <Button onClick={exportPDF} className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 w-full sm:w-auto text-sm">
           <Download className="w-4 h-4" />
           Export PDF
         </Button>
       </div>
 
-      {/* Summary */}
+      {/* Summary Card */}
       <Card>
-        <CardContent className="p-4">
+        <CardContent className="p-3 sm:p-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center">
-                <FileBarChart className="w-5 h-5 text-white" />
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 bg-emerald-500 rounded-lg flex items-center justify-center shrink-0">
+                <FileBarChart className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Total Pendapatan (Filter)</p>
-                <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400">{formatRp(revenue)}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">Total Pendapatan (Filter)</p>
+                <p className="text-base sm:text-xl font-bold text-emerald-600 dark:text-emerald-400">{formatRp(revenue)}</p>
               </div>
             </div>
             <div className="text-right">
-              <p className="text-xs text-muted-foreground">Jumlah Transaksi</p>
-              <p className="text-xl font-bold">{transactions.length}</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Jumlah Transaksi</p>
+              <p className="text-base sm:text-xl font-bold">{transactions.length}</p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Search & Filter */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      {/* Search & Filter - stack di mobile */}
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
@@ -194,40 +189,43 @@ export default function SalesReport() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            className="pl-9 h-10"
+            className="pl-9 h-10 text-sm"
           />
         </div>
-        <Input
-          type="date"
-          value={dateFrom}
-          onChange={(e) => setDateFrom(e.target.value)}
-          className="h-10"
-        />
-        <Input
-          type="date"
-          value={dateTo}
-          onChange={(e) => setDateTo(e.target.value)}
-          className="h-10"
-        />
-        <Button variant="outline" onClick={handleSearch}>
-          <Search className="w-4 h-4 mr-1" /> Cari
-        </Button>
+        <div className="flex gap-2">
+          <Input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            className="h-10 text-sm flex-1 sm:flex-none"
+          />
+          <Input
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            className="h-10 text-sm flex-1 sm:flex-none"
+          />
+          <Button variant="outline" onClick={handleSearch} className="text-xs shrink-0">
+            <Search className="w-4 h-4 sm:mr-1" /> <span className="hidden sm:inline">Cari</span>
+          </Button>
+        </div>
       </div>
 
-      {/* Transactions List */}
+      {/* Transactions - mobile card + desktop table */}
       <Card>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
+        <CardContent className="p-2 sm:p-0">
+          {/* Desktop Table */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-muted/50 border-b">
                   <th className="text-left p-3 font-medium">No</th>
                   <th className="text-left p-3 font-medium">Tanggal</th>
                   <th className="text-left p-3 font-medium">Kasir</th>
-                  <th className="text-center p-3 font-medium hidden sm:table-cell">Item</th>
+                  <th className="text-center p-3 font-medium">Item</th>
                   <th className="text-right p-3 font-medium">Total</th>
-                  <th className="text-right p-3 font-medium hidden sm:table-cell">Bayar</th>
-                  <th className="text-right p-3 font-medium hidden sm:table-cell">Kembali</th>
+                  <th className="text-right p-3 font-medium">Bayar</th>
+                  <th className="text-right p-3 font-medium">Kembali</th>
                 </tr>
               </thead>
               <tbody>
@@ -254,17 +252,54 @@ export default function SalesReport() {
                         </div>
                       </td>
                       <td className="p-3">{trx.kasir.name || trx.kasir.username}</td>
-                      <td className="p-3 text-center hidden sm:table-cell">{trx.details.length} item</td>
+                      <td className="p-3 text-center">{trx.details.length} item</td>
                       <td className="p-3 text-right font-bold text-emerald-600 dark:text-emerald-400">
                         {formatRp(trx.totalPrice)}
                       </td>
-                      <td className="p-3 text-right hidden sm:table-cell">{formatRp(trx.payment)}</td>
-                      <td className="p-3 text-right hidden sm:table-cell">{formatRp(trx.change)}</td>
+                      <td className="p-3 text-right">{formatRp(trx.payment)}</td>
+                      <td className="p-3 text-right">{formatRp(trx.change)}</td>
                     </tr>
                   ))
                 )}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="sm:hidden space-y-2">
+            {loading ? (
+              <div className="flex justify-center py-10">
+                <Loader2 className="w-6 h-6 animate-spin text-emerald-600" />
+              </div>
+            ) : transactions.length === 0 ? (
+              <div className="text-center py-10 text-muted-foreground text-sm flex flex-col items-center gap-2">
+                <ShoppingCart className="w-10 h-10 opacity-30" />
+                <p>Tidak ada data transaksi</p>
+              </div>
+            ) : (
+              transactions.map((trx, index) => (
+                <div key={trx.id} className="p-3 rounded-lg border hover:bg-muted/50">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">#{index + 1}</span>
+                      <span className="text-xs font-medium">{trx.kasir.name || trx.kasir.username}</span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(trx.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] text-muted-foreground">{trx.details.length} item | {new Date(trx.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-emerald-600 dark:text-emerald-400 text-sm">{formatRp(trx.totalPrice)}</p>
+                      <p className="text-[10px] text-muted-foreground">Bayar: {formatRp(trx.payment)}</p>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </CardContent>
       </Card>
@@ -275,19 +310,19 @@ export default function SalesReport() {
           <Button
             variant="outline"
             size="icon"
-            className="h-8 w-8"
+            className="h-9 w-9"
             onClick={() => { setPage(page - 1); fetchSales(page - 1); }}
             disabled={page <= 1}
           >
             <ChevronLeft className="w-4 h-4" />
           </Button>
-          <span className="text-sm text-muted-foreground">
-            Halaman {page} dari {totalPages}
+          <span className="text-xs sm:text-sm text-muted-foreground">
+            {page} / {totalPages}
           </span>
           <Button
             variant="outline"
             size="icon"
-            className="h-8 w-8"
+            className="h-9 w-9"
             onClick={() => { setPage(page + 1); fetchSales(page + 1); }}
             disabled={page >= totalPages}
           >
