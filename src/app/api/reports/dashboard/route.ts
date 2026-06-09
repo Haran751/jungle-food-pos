@@ -5,20 +5,18 @@ import TransactionDetail from '@/models/TransactionDetail';
 import Product from '@/models/Product';
 import { getTokenFromHeader, verifyToken } from '@/lib/jwt';
 
-// GET /api/reports/dashboard - Dashboard statistics
 export async function GET(request: NextRequest) {
   try {
     await connectDB();
 
     const token = getTokenFromHeader(request.headers.get('Authorization'));
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!token) return NextResponse.json({ error: 'Unauthorized', detail: 'Header Authorization kosong' }, { status: 401 });
     const payload = verifyToken(token);
-    if (!payload) return NextResponse.json({ error: 'Token tidak valid' }, { status: 401 });
+    if (!payload) return NextResponse.json({ error: 'Token tidak valid', detail: 'verifyToken() return null' }, { status: 401 });
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Semua user (ADMIN & KASIR) liat data global — tanpa filter kasirId
     const todayFilter: Record<string, unknown> = { createdAt: { $gte: today } };
     const allFilter: Record<string, unknown> = {};
 
@@ -44,8 +42,7 @@ export async function GET(request: NextRequest) {
       Product.countDocuments({ stock: { $lt: 10 } }),
     ]);
 
-    // Get sales chart data (last 7 days)
-    const chartData = [];
+    const chartData: { name: string; date: string; total: number; count: number }[] = [];
     for (let i = 6; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
@@ -57,7 +54,6 @@ export async function GET(request: NextRequest) {
       const chartWhere: Record<string, unknown> = {
         createdAt: { $gte: date, $lt: nextDate },
       };
-      // Tanpa filter kasirId — semua user liat data global
 
       const [dayResult, dayCount] = await Promise.all([
         Transaction.aggregate([
@@ -70,14 +66,14 @@ export async function GET(request: NextRequest) {
       const dayName = new Intl.DateTimeFormat('id-ID', { weekday: 'short' }).format(date);
       const dateStr = `${date.getDate()}/${date.getMonth() + 1}`;
 
-          const chartData: { 
-            name: string;
-            date: string;
-            total: number; 
-            count: number }[] = [];
+      chartData.push({
+        name: dayName,
+        date: dateStr,
+        total: dayResult[0]?.total || 0,
+        count: dayCount,
+      });
     }
 
-    // Top selling products
     const topProducts = await TransactionDetail.aggregate([
       { $group: { _id: '$productId', quantity: { $sum: '$quantity' }, revenue: { $sum: '$subtotal' } } },
       { $sort: { quantity: -1 } },
@@ -107,8 +103,9 @@ export async function GET(request: NextRequest) {
       chartData,
       topProducts: topProductDetails,
     });
-  } catch (error) {
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
     console.error('Dashboard error:', error);
-    return NextResponse.json({ error: 'Terjadi kesalahan server' }, { status: 500 });
+    return NextResponse.json({ error: 'Terjadi kesalahan server', detail: msg }, { status: 500 });
   }
 }

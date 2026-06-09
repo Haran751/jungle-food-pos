@@ -25,9 +25,14 @@ export default function CashierDashboard() {
   const [data, setData] = useState<CashierDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [debug, setDebug] = useState('');
 
   useEffect(() => {
-    if (!token) return;
+    if (!token) {
+      setDebug('Menunggu token...');
+      return;
+    }
+    setDebug('');
     fetchDashboard(token);
   }, [token]);
 
@@ -39,13 +44,15 @@ export default function CashierDashboard() {
         headers: { Authorization: `Bearer ${authToken}` },
       });
       const json = await res.json();
+      setDebug(`HTTP ${res.status} | ${JSON.stringify(json).slice(0, 200)}`);
       if (res.ok) {
         setData(json);
       } else {
         setError(json.error || json.detail || 'Gagal memuat data');
       }
-    } catch {
+    } catch (err) {
       setError('Gagal terhubung ke server');
+      setDebug(String(err));
     } finally {
       setLoading(false);
     }
@@ -66,8 +73,13 @@ export default function CashierDashboard() {
       <div className="flex flex-col items-center justify-center py-20 gap-4">
         <AlertCircle className="w-12 h-12 text-red-400" />
         <p className="text-red-500 font-medium">{error}</p>
+        {debug && (
+          <pre className="text-xs bg-gray-100 p-3 rounded max-w-lg overflow-auto text-gray-600 text-left">
+            {debug}
+          </pre>
+        )}
         <button
-          onClick={() => fetchDashboard(token)}
+          onClick={() => fetchDashboard(useStore.getState().token)}
           className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm hover:bg-emerald-700"
         >
           Coba Lagi
@@ -153,6 +165,12 @@ export default function CashierDashboard() {
           </ResponsiveContainer>
         </CardContent>
       </Card>
+
+      {debug && (
+        <pre className="text-xs bg-gray-100 p-3 rounded text-gray-500 overflow-auto">
+          Debug: {debug}
+        </pre>
+      )}
     </div>
   );
 }
